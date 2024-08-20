@@ -6,6 +6,6 @@ Route.get("/", async ({ view }) => {
 });
 
 Route.group(() => {
-  Route.get('signup', 'UsersController.signup');
+  Route.post('signup', 'UsersController.signup');
 })
   .prefix('admin')

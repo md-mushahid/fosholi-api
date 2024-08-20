@@ -5,7 +5,10 @@ export default class UsersController {
     return 'I am from controller'
   }
 
-  public async create({ }: HttpContextContract) { }
+  public async signup({request, response}: HttpContextContract) {
+    console.log(request.body());
+    return true;
+  }
 
   public async store({ }: HttpContextContract) { }
 
