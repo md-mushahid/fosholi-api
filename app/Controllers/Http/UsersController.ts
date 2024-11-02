@@ -3,15 +3,25 @@ import User from 'App/Models/User';
 
 export default class UsersController {
   public async signup({ request }: HttpContextContract) {
-    const { fullName, email, password } = request.body();
-    const user_type = 'instructor'
-    const user = await User.create({
-      name: fullName,
-      email: email,
-      userType: user_type,
-      password: password,
-    });
-    return user;
+    try {
+      const { name, email, password } = request.body();
+      const user_type = 'teacher';
+      const verificationToken = '1234';
+      const user = await User.create({
+        name: name,
+        email: email,
+        userType: user_type,
+        password: password,
+        verificationToken: verificationToken,
+      });
+      return user;
+    } catch (error) {
+      console.error('Error during user signup:', error);
+      return {
+        message: 'User signup failed. Please try again.',
+        error: error.message,
+      };
+    }
   }
 
   public async login({ request, response }) {

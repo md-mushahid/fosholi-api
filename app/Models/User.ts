@@ -12,10 +12,19 @@ export default class User extends BaseModel {
   public email: string
 
   @column()
+  public profilePicture: string | null
+
+  @column()
+  public verificationToken: string | null
+
+  @column()
+  public isVerified: boolean
+
+  @column()
   public password: string
 
   @column()
-  public userType: string
+  public userType: 'admin' | 'user' | 'teacher'
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
