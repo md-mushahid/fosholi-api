@@ -9,4 +9,9 @@ Route.group(() => {
   Route.post('signup', 'UsersController.signup');
   Route.post('login', 'UsersController.login');
 })
-  .prefix('admin')
+  .prefix('admin') //
+
+Route.post('update-user', 'UsersController.update');
+Route.post('create-blog', 'UsersController.createBlog');
+Route.post('create-program', 'UsersController.createProgram');
+Route.get('allProgramme', 'UsersController.getAllProgramme');

@@ -1,5 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Blog from 'App/Models/Blog';
+import Program from 'App/Models/Program';
 import User from 'App/Models/User';
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class UsersController {
   public async signup({ request }: HttpContextContract) {
@@ -34,11 +37,40 @@ export default class UsersController {
     return data;
   }
 
+  public async createBlog({ request, response }: HttpContextContract) {
+    const { title, content, user_id, blogImage } = request.all();
+    await Blog.create({ title: title, content: content, userId: user_id, blogImage: blogImage });
+    return response.status(200).json({ message: 'Blog created successfully' });
+  }
+
   public async show({ }: HttpContextContract) { }
 
   public async edit({ }: HttpContextContract) { }
 
-  public async update({ }: HttpContextContract) { }
+  public async update({ request, response }: HttpContextContract) {
+    const { id, name, email, profilePicture, password } = request.all();
+    await User.query().where('id', id).update({ id: id, name: name, email: email, profilePicture: profilePicture, password: password });
+    return response.status(200).json({ message: 'User updated successfully' });
+  }
 
   public async destroy({ }: HttpContextContract) { }
+
+  public async getAllProgramme({ }: HttpContextContract) {
+    const programs = await Program.all();
+    return programs;
+  }
+
+  public async createProgram({ request, response }: HttpContextContract) {
+    const payload = request.all();
+    console.log(payload);
+
+    // You can add validation logic here if needed
+    try {
+      const program = await Program.create(payload);
+      return response.status(201).json({ message: 'Program created successfully', program });
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({ message: 'Failed to create program', error });
+    }
+  }
 }
