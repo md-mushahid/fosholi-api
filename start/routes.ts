@@ -15,3 +15,5 @@ Route.post('update-user', 'UsersController.update');
 Route.post('create-blog', 'UsersController.createBlog');
 Route.post('create-program', 'UsersController.createProgram');
 Route.get('allProgramme', 'UsersController.getAllProgramme');
+Route.post("payment", "UsersController.payment");
+Route.get("payment-finalize", "UsersController.paymentFinalize");
