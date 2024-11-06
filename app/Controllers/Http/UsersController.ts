@@ -3,6 +3,7 @@ import Blog from "App/Models/Blog";
 import Program from "App/Models/Program";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
+import Order from "App/Models/Order";
 require("dotenv").config();
 const shurjopay = require("shurjopay")();
 
@@ -115,7 +116,7 @@ export default class UsersController {
             customer_city: "Dhaka",
             customer_post_code: "1229",
             currency: "BDT",
-            email: "pWQ5I@example.com",
+            customer_email: "ahsan@gmail.com",
           },
           (response_data) => {
             // Resolve the Promise with response_data
@@ -139,7 +140,10 @@ export default class UsersController {
       return ctx.response.status(500).send("Payment failed.");
     }
   }
-
+  public async createOrder(payload) {
+    console.log("🚀 ~ UsersController ~ createOrder ~ payload:", payload)
+    return Order.create(payload);
+  }
   public async paymentFinalize(ctx: HttpContextContract) {
     const { order_id } = ctx.request.all();
     shurjopay.config(
@@ -160,7 +164,19 @@ export default class UsersController {
             // TODO Handle error response
           }
         );
-        console.log("🚀 ~ UsersController ~ constresponse_data=awaitnewPromise ~ response_data:", response_data)
+      });
+      this.createOrder({
+        orderId: response_data[0].order_id,
+        customerName: response_data[0].name,
+        email: response_data[0].email,
+        phoneNo: response_data[0].phone_no,
+        amount: response_data[0].amount,
+        currency: response_data[0].currency,
+        receivedAmount: response_data[0].amount,
+        bankStatus: response_data[0].status,
+        invoiceNo: response_data[0].order_id,
+        bankTrxId: null,
+        status: "paid",
       });
     } catch (error) {
       console.error("Error during payment process:", error);
