@@ -51,21 +51,26 @@ export default class UsersController {
     return response.status(200).json({ message: "Blog created successfully" });
   }
 
-  public async getBlogs({}: HttpContextContract) {
+  public async getBlogs({ }: HttpContextContract) {
     const blogs = await Blog.query().select('*');
     return blogs;
   }
 
-  public async getSingleBlog({ request}: HttpContextContract) {
+  public async getSingleBlog({ request }: HttpContextContract) {
     const { id } = request.params();
     const blog = await Blog.query().where('id', id).first();
-    return blog;
+    const blogData = blog?.serialize();
+    const user: any = await User.query().select('name', 'profile_picture', 'email').where('id', blogData?.user_id).first();
+
+    const data = {...blogData, ...(user.serialize())};
+    console.log(data);
+    return data;
   }
 
-  public async edit({}: HttpContextContract) {}
+  public async edit({ }: HttpContextContract) { }
 
   public async updateUser({ request, response }: HttpContextContract) {
-    const payload= request.all();
+    const payload = request.all();
     await User.query().where("id", payload.id).update(payload);
     return response.status(200).json({ message: "User updated successfully" });
   }
@@ -73,10 +78,10 @@ export default class UsersController {
   public async sendUsMessage({ request, response }: HttpContextContract) {
     const payload = request.only(['name', 'email', 'message', 'image']);
     await ContactMessage.create(payload)
-    return response.status(200).json({ message: 'Message sent successfully'})
+    return response.status(200).json({ message: 'Message sent successfully' })
   }
 
-  public async getAllProgramme({}: HttpContextContract) {
+  public async getAllProgramme({ }: HttpContextContract) {
     const programs = await Program.all();
     return programs;
   }
