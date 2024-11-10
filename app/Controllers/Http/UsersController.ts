@@ -3,6 +3,7 @@ import Blog from "App/Models/Blog";
 import Program from "App/Models/Program";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
+import ContactMessage from "App/Models/ContactMessage";
 require("dotenv").config();
 const shurjopay = require("shurjopay")();
 
@@ -40,33 +41,40 @@ export default class UsersController {
   }
 
   public async createBlog({ request, response }: HttpContextContract) {
-    const { title, content, user_id, blogImage } = request.all();
+    const { title, content, user_id, image } = request.all();
     await Blog.create({
       title: title,
       content: content,
       userId: user_id,
-      blogImage: blogImage,
+      blogImage: image,
     });
     return response.status(200).json({ message: "Blog created successfully" });
   }
 
-  public async show({}: HttpContextContract) {}
+  public async getBlogs({}: HttpContextContract) {
+    const blogs = await Blog.query().select('*');
+    return blogs;
+  }
+
+  public async getSingleBlog({ request}: HttpContextContract) {
+    const { id } = request.params();
+    const blog = await Blog.query().where('id', id).first();
+    return blog;
+  }
 
   public async edit({}: HttpContextContract) {}
 
-  public async update({ request, response }: HttpContextContract) {
-    const { id, name, email, profilePicture, password } = request.all();
-    await User.query().where("id", id).update({
-      id: id,
-      name: name,
-      email: email,
-      profilePicture: profilePicture,
-      password: password,
-    });
+  public async updateUser({ request, response }: HttpContextContract) {
+    const payload= request.all();
+    await User.query().where("id", payload.id).update(payload);
     return response.status(200).json({ message: "User updated successfully" });
   }
 
-  public async destroy({}: HttpContextContract) {}
+  public async sendUsMessage({ request, response }: HttpContextContract) {
+    const payload = request.only(['name', 'email', 'message', 'image']);
+    await ContactMessage.create(payload)
+    return response.status(200).json({ message: 'Message sent successfully'})
+  }
 
   public async getAllProgramme({}: HttpContextContract) {
     const programs = await Program.all();
@@ -103,7 +111,7 @@ export default class UsersController {
 
     // Wrap makePayment in a Promise to use async/await
     try {
-      const response_data = await new Promise((resolve, reject) => {
+      const response_data: any = await new Promise((resolve, reject) => {
         shurjopay.makePayment(
           {
             amount: 1000,

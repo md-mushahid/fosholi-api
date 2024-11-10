@@ -11,9 +11,12 @@ Route.group(() => {
 })
   .prefix('admin') //
 
-Route.post('update-user', 'UsersController.update');
+Route.post('update-user', 'UsersController.updateUser');
 Route.post('create-blog', 'UsersController.createBlog');
 Route.post('create-program', 'UsersController.createProgram');
 Route.get('allProgramme', 'UsersController.getAllProgramme');
 Route.post("payment", "UsersController.payment");
 Route.get("payment-finalize", "UsersController.paymentFinalize");
+Route.get('get-blogs', 'UsersController.getBlogs');
+Route.get('getSingleBlog/:id', 'UsersController.getSingleBlog')
+Route.post('send-us-message', 'UsersController.sendUsMessage');

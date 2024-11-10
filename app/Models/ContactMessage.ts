@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 
-export default class Support extends BaseModel {
+export default class ContactMessage extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
@@ -12,7 +12,10 @@ export default class Support extends BaseModel {
   public email: string
 
   @column()
-  public problem: string
+  public message: string
+
+  @column()
+  public image: string
 
   @column()
   public response_status: string
