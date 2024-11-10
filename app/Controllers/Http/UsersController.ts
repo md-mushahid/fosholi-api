@@ -137,6 +137,7 @@ export default class UsersController {
       });
       // Redirect to the checkout URL if available
       if (response_data && response_data.checkout_url) {
+        console.log("🚀 ~ UsersController ~ response_data:", response_data.checkout_url)
         return response_data.checkout_url;
       } else {
         console.log("Payment response data is missing 'checkout_url'");
