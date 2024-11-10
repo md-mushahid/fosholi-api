@@ -107,8 +107,6 @@ export default class UsersController {
 
   public async communityPost({ request, response }: HttpContextContract) {
     const payload = request.all();
-    console.log(payload);
-    return;
     await Post.create(payload);
     return response.status(200).json({ message: 'Post created successfully' });
   }

@@ -6,6 +6,9 @@ export default class Post extends BaseModel {
     public id: number
 
     @column()
+    public title: string
+
+    @column()
     public postImage: string
 
     @column()
