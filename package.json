@@ -33,6 +33,7 @@
     "reflect-metadata": "^0.2.2",
     "shurjopay": "^0.12.1",
     "shurjopay-js": "^0.1.3",
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "stripe": "^17.3.1"
   }
 }

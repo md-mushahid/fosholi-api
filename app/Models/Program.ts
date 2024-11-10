@@ -12,6 +12,9 @@ export default class Program extends BaseModel {
     public description: string
 
     @column()
+    public stripepriceid: string
+
+    @column()
     public subscriptionType: 'monthly' | 'one-time'
 
     @column()

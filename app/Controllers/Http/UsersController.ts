@@ -5,9 +5,8 @@ import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import ContactMessage from "App/Models/ContactMessage";
 import Post from "App/Models/Post";
-require("dotenv").config();
-const shurjopay = require("shurjopay")();
-
+import Order from "App/Models/Order";
+const stripe = require('stripe')('sk_test_51QJew1Jw0FC7QJ5cOZI5zWeKU3slsRme4nlDEAbicEIy7hCLEILNS6OY0DYFG6vheV7YmTFKIZy5SkJvsJLnKAPv00vLEY1Jd0');
 export default class UsersController {
   public async signup({ request }: HttpContextContract) {
     try {
@@ -63,7 +62,7 @@ export default class UsersController {
     const blogData = blog?.serialize();
     const user: any = await User.query().select('name', 'profile_picture', 'email').where('id', blogData?.user_id).first();
 
-    const data = {...blogData, ...(user.serialize())};
+    const data = { ...blogData, ...(user.serialize()) };
     console.log(data);
     return data;
   }
@@ -94,6 +93,7 @@ export default class UsersController {
     // You can add validation logic here if needed
     try {
       const program = await Program.create(payload);
+      this.createPriceNproduct(payload, program)
       return response
         .status(201)
         .json({ message: "Program created successfully", program });
@@ -110,82 +110,51 @@ export default class UsersController {
     await Post.create(payload);
     return response.status(200).json({ message: 'Post created successfully' });
   }
+  public async createPriceNproduct(payload, program) {
+    // {
+    //   title: 'a',
+    //   description: 'bbbb',
+    //   subscriptionType: 'monthly',
+    //   monthlyPrice: '100',
+    //   oneTimePrice: null,
+    //   isLifetimeAccess: false,
+    //   instructorId: 1
+    // }
+    const singleProgram = await Program.findOrFail(program.id);
 
+    const price = await stripe.prices.create({
+      currency: 'usd',
+      unit_amount: payload.monthlyPrice*100 || payload.oneTimePrice *100,
+      product_data: {
+        name: payload.title,
+      },
+    });
+    singleProgram.stripepriceid = price.id;
+    singleProgram.save();
+  }
   public async payment(ctx: HttpContextContract) {
-    // Configure Shurjopay with environment variables
-    shurjopay.config(
-      process.env.SP_ENDPOINT,
-      process.env.SP_USERNAME,
-      process.env.SP_PASSWORD,
-      process.env.SP_PREFIX,
-      process.env.SP_RETURN_URL
-    );
-
-    // Wrap makePayment in a Promise to use async/await
     try {
-      const response_data: any = await new Promise((resolve, reject) => {
-        shurjopay.makePayment(
+      const payload = ctx.request.all()  // Pass the Stripe price ID
+      console.log(payload)
+      // Create a checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
           {
-            amount: 1000,
-            order_id: "123",
-            customer_name: "Shanto",
-            customer_address: "Mohakhali",
-            client_ip: "102.324.0.5",
-            customer_phone: "01517162394",
-            customer_city: "Dhaka",
-            customer_post_code: "1229",
-            currency: "BDT",
-            email: "pWQ5I@example.com",
+            price: payload.product.stripepriceid,
+            quantity: 1,
           },
-          (response_data) => {
-            // Resolve the Promise with response_data
-            resolve(response_data);
-          },
-          (error) => {
-            // Reject the Promise with error
-            reject(error);
-          }
-        );
-      });
-      // Redirect to the checkout URL if available
-      if (response_data && response_data.checkout_url) {
-        console.log("🚀 ~ UsersController ~ response_data:", response_data.checkout_url)
-        return response_data.checkout_url;
-      } else {
-        console.log("Payment response data is missing 'checkout_url'");
-        return ctx.response.status(500).send("Checkout URL not available.");
-      }
+        ],
+        mode: 'payment', // or 'payment' for one-time payments
+        success_url: 'http://localhost:3000/dashboard',
+        cancel_url: 'https://yourdomain.com/cancel',
+      })
+      Order.create({user_id:payload.user_id,product_id:payload.product.id})
+      return ctx.response.json({ url: session.url }) // Redirect to this URL on the frontend
     } catch (error) {
-      console.error("Error during payment process:", error);
-      return ctx.response.status(500).send("Payment failed.");
+      console.error('Error creating checkout session:', error)
+      return ctx.response.status(500).send('Could not create checkout session')
     }
   }
 
-  public async paymentFinalize(ctx: HttpContextContract) {
-    const { order_id } = ctx.request.all();
-    shurjopay.config(
-      process.env.SP_ENDPOINT,
-      process.env.SP_USERNAME,
-      process.env.SP_PASSWORD,
-      process.env.SP_PREFIX,
-      process.env.SP_RETURN_URL
-    );
-    try {
-      const response_data = await new Promise((resolve, reject) => {
-        shurjopay.verifyPayment(
-          order_id,
-          (response_data) => {
-            resolve(response_data);
-          },
-          (error) => {
-            // TODO Handle error response
-          }
-        );
-        console.log("🚀 ~ UsersController ~ constresponse_data=awaitnewPromise ~ response_data:", response_data)
-      });
-    } catch (error) {
-      console.error("Error during payment process:", error);
-      return ctx.response.status(500).send("Payment failed.");
-    }
-  }
 }
