@@ -4,6 +4,7 @@ import Program from "App/Models/Program";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import ContactMessage from "App/Models/ContactMessage";
+import Post from "App/Models/Post";
 require("dotenv").config();
 const shurjopay = require("shurjopay")();
 
@@ -102,6 +103,14 @@ export default class UsersController {
         .status(500)
         .json({ message: "Failed to create program", error });
     }
+  }
+
+  public async communityPost({ request, response }: HttpContextContract) {
+    const payload = request.all();
+    console.log(payload);
+    return;
+    await Post.create(payload);
+    return response.status(200).json({ message: 'Post created successfully' });
   }
 
   public async payment(ctx: HttpContextContract) {
