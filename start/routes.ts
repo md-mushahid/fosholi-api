@@ -20,3 +20,4 @@ Route.get("payment-finalize", "UsersController.paymentFinalize");
 Route.get('get-blogs', 'UsersController.getBlogs');
 Route.get('getSingleBlog/:id', 'UsersController.getSingleBlog')
 Route.post('send-us-message', 'UsersController.sendUsMessage');
+Route.post('create-post', 'UsersController.communityPost');

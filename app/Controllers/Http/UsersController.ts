@@ -4,6 +4,7 @@ import Program from "App/Models/Program";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import ContactMessage from "App/Models/ContactMessage";
+import Post from "App/Models/Post";
 import Order from "App/Models/Order";
 const stripe = require('stripe')('sk_test_51QJew1Jw0FC7QJ5cOZI5zWeKU3slsRme4nlDEAbicEIy7hCLEILNS6OY0DYFG6vheV7YmTFKIZy5SkJvsJLnKAPv00vLEY1Jd0');
 export default class UsersController {
@@ -102,6 +103,14 @@ export default class UsersController {
         .status(500)
         .json({ message: "Failed to create program", error });
     }
+  }
+
+  public async communityPost({ request, response }: HttpContextContract) {
+    const payload = request.all();
+    console.log(payload);
+    return;
+    await Post.create(payload);
+    return response.status(200).json({ message: 'Post created successfully' });
   }
   public async createPriceNproduct(payload, program) {
     // {
