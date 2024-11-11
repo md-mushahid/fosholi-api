@@ -1,4 +1,4 @@
-import Route from '@ioc:Adonis/Core/Route';
+import Route from "@ioc:Adonis/Core/Route";
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 
 Route.get("/", async ({ view }) => {
@@ -6,15 +6,14 @@ Route.get("/", async ({ view }) => {
 });
 
 Route.group(() => {
-  Route.post('signup', 'UsersController.signup');
-  Route.post('login', 'UsersController.login');
-})
-  .prefix('admin') //
+  Route.post("signup", "UsersController.signup");
+  Route.post("login", "UsersController.login");
+}).prefix("admin"); //
 
-Route.post('update-user', 'UsersController.updateUser');
-Route.post('create-blog', 'UsersController.createBlog');
-Route.post('create-program', 'UsersController.createProgram');
-Route.get('allProgramme', 'UsersController.getAllProgramme');
+Route.post("update-user", "UsersController.updateUser");
+Route.post("create-blog", "UsersController.createBlog");
+Route.post("create-program", "UsersController.createProgram");
+Route.get("allProgramme", "UsersController.getAllProgramme");
 Route.post("payment", "UsersController.payment");
 Route.get("payment-finalize", "UsersController.paymentFinalize");
 Route.get('get-blogs', 'UsersController.getBlogs');

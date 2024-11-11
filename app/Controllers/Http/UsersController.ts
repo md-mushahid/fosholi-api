@@ -6,7 +6,10 @@ import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import ContactMessage from "App/Models/ContactMessage";
 import Post from "App/Models/Post";
 import Order from "App/Models/Order";
-const stripe = require('stripe')('sk_test_51QJew1Jw0FC7QJ5cOZI5zWeKU3slsRme4nlDEAbicEIy7hCLEILNS6OY0DYFG6vheV7YmTFKIZy5SkJvsJLnKAPv00vLEY1Jd0');
+import Comment from "App/Models/Comment";
+const stripe = require("stripe")(
+  "sk_test_51QJew1Jw0FC7QJ5cOZI5zWeKU3slsRme4nlDEAbicEIy7hCLEILNS6OY0DYFG6vheV7YmTFKIZy5SkJvsJLnKAPv00vLEY1Jd0"
+);
 export default class UsersController {
   public async signup({ request }: HttpContextContract) {
     try {
@@ -31,10 +34,10 @@ export default class UsersController {
   }
 
   public async checkPurchase({ params, response }: HttpContextContract) {
-    const { userId, productId } = params
+    const { userId, productId } = params;
     const order = await Order.query()
-      .where('user_id', userId)
-      .andWhere('product_id', productId)
+      .where("user_id", userId)
+      .andWhere("product_id", productId)
       .first();
 
     if (order != null && order) {
@@ -46,7 +49,10 @@ export default class UsersController {
 
   public async login({ request, response }) {
     const { email, password } = request.only(["email", "password"]);
-    const user: any = await User.query().select('id', 'password', 'name', 'profile_picture', 'email', 'user_type').where('email', email).first();
+    const user: any = await User.query()
+      .select("id", "password", "name", "profile_picture", "email", "user_type")
+      .where("email", email)
+      .first();
     if (user.password != password) {
       return response.status(400).json({ message: "Invalid credentials" });
     }
@@ -67,23 +73,26 @@ export default class UsersController {
     return response.status(200).json({ message: "Blog created successfully" });
   }
 
-  public async getBlogs({ }: HttpContextContract) {
-    const blogs = await Blog.query().select('*');
+  public async getBlogs({}: HttpContextContract) {
+    const blogs = await Blog.query().select("*");
     return blogs;
   }
 
   public async getSingleBlog({ request }: HttpContextContract) {
     const { id } = request.params();
-    const blog = await Blog.query().where('id', id).first();
+    const blog = await Blog.query().where("id", id).first();
     const blogData = blog?.serialize();
-    const user: any = await User.query().select('name', 'profile_picture', 'email').where('id', blogData?.user_id).first();
+    const user: any = await User.query()
+      .select("name", "profile_picture", "email")
+      .where("id", blogData?.user_id)
+      .first();
 
-    const data = { ...blogData, ...(user.serialize()) };
-    console.log(data);
+    const data = { ...blogData, ...user.serialize() };
+    // console.log(data);
     return data;
   }
 
-  public async edit({ }: HttpContextContract) { }
+  public async edit({}: HttpContextContract) {}
 
   public async updateUser({ request, response }: HttpContextContract) {
     const payload = request.all();
@@ -92,12 +101,12 @@ export default class UsersController {
   }
 
   public async sendUsMessage({ request, response }: HttpContextContract) {
-    const payload = request.only(['name', 'email', 'message', 'image']);
-    await ContactMessage.create(payload)
-    return response.status(200).json({ message: 'Message sent successfully' })
+    const payload = request.only(["name", "email", "message", "image"]);
+    await ContactMessage.create(payload);
+    return response.status(200).json({ message: "Message sent successfully" });
   }
 
-  public async getAllProgramme({ }: HttpContextContract) {
+  public async getAllProgramme({}: HttpContextContract) {
     const programs = await Program.all();
     return programs;
   }
@@ -109,7 +118,7 @@ export default class UsersController {
     // You can add validation logic here if needed
     try {
       const program = await Program.create(payload);
-      this.createPriceNproduct(payload, program)
+      this.createPriceNproduct(payload, program);
       return response
         .status(201)
         .json({ message: "Program created successfully", program });
@@ -130,43 +139,43 @@ export default class UsersController {
 
   public async getMemberships({ request, response }: HttpContextContract) {
     const { id } = request.params();
-    console.log(id)
+    console.log(id);
     const memberships = await Order.query()
-      .where('user_id', id)
-      .select('product_id');
+      .where("user_id", id)
+      .select("product_id");
     if (memberships.length === 0) {
       return 0;
     }
     const productIds: number[] = memberships.map((order) => order.product_id); // Assuming product_id is a number
     const products = await Program.query()
-      .whereIn('id', productIds).select('id', 'title');
+      .whereIn("id", productIds)
+      .select("id", "title");
     if (products.length === 0) {
       return 0;
     }
     return response.status(200).send(products);
-
   }
-
-
 
   public async deletePricing({ request, response }: HttpContextContract) {
     const { product_id } = request.all();
 
-    await Program.query().where('id', product_id).delete();
-    await Order.query().where('product_id', product_id).delete();
+    await Program.query().where("id", product_id).delete();
+    await Order.query().where("product_id", product_id).delete();
 
-    return response.status(200).json({ message: 'Pricing deleted successfully' });
+    return response
+      .status(200)
+      .json({ message: "Pricing deleted successfully" });
   }
 
   public async communityPost({ request, response }: HttpContextContract) {
     const payload = request.all();
     await Post.create(payload);
-    return response.status(200).json({ message: 'Post created successfully' });
+    return response.status(200).json({ message: "Post created successfully" });
   }
   public async createPriceNproduct(payload, program) {
     const singleProgram = await Program.findOrFail(program.id);
     const price = await stripe.prices.create({
-      currency: 'usd',
+      currency: "usd",
       unit_amount: payload.monthlyPrice * 100 || payload.oneTimePrice * 100,
       product_data: {
         name: payload.title,
@@ -177,28 +186,45 @@ export default class UsersController {
   }
   public async payment(ctx: HttpContextContract) {
     try {
-      const payload = ctx.request.all()
+      const payload = ctx.request.all();
       // console.log(payload)
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
+        payment_method_types: ["card"],
         line_items: [
           {
             price: payload.product.stripepriceid,
             quantity: 1,
           },
         ],
-        mode: 'payment', // or 'payment' for one-time payments
-        success_url: 'http://localhost:3000/dashboard',
-        cancel_url: 'http://localhost:3000/pricing',
-      })
+        mode: "payment", // or 'payment' for one-time payments
+        success_url: "http://localhost:3000/dashboard",
+        cancel_url: "http://localhost:3000/pricing",
+      });
       if (session) {
-        await Order.create({ user_id: payload.user_id, product_id: payload.product.id })
+        await Order.create({
+          user_id: payload.user_id,
+          product_id: payload.product.id,
+        });
       }
-      return ctx.response.json({ url: session.url }) // Redirect to this URL on the frontend
+      return ctx.response.json({ url: session.url }); // Redirect to this URL on the frontend
     } catch (error) {
-      console.error('Error creating checkout session:', error)
-      return ctx.response.status(500).send('Could not create checkout session')
+      console.error("Error creating checkout session:", error);
+      return ctx.response.status(500).send("Could not create checkout session");
     }
   }
-
+  public async getComment(ctx: HttpContextContract) {
+    const blog_id = ctx.params.id;
+    const comments = await Comment.query()
+      .where("blog_id", blog_id)
+      .whereNull("parent_id") // Top-level comments
+      .preload("replies", (repliesQuery) => {
+        repliesQuery.preload("replies"); // Load nested replies
+      })
+      .orderBy("created_at", "asc"); // Order by creation time
+    return comments;
+  }
+  public async createComment(ctx: HttpContextContract) {
+    const payload = ctx.request.all();
+    return await Comment.create(payload);
+  }
 }
