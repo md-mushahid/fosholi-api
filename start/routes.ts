@@ -24,6 +24,7 @@ Route.post('delete-pricing', 'UsersController.deletePricing');
 Route.get('get-memberships/:id', 'UsersController.getMemberships');
 Route.get('/get-purchased-pricing/:userId/:productId', 'UsersController.checkPurchase');
 Route.get('/community/:id', 'UsersController.getCommunityData');
-
+Route.get("get-comment/:id", "UsersController.getComment");
+Route.post("create-comment", "UsersController.createComment");
 
 
