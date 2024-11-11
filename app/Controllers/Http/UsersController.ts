@@ -121,6 +121,13 @@ export default class UsersController {
     }
   }
 
+  public async getCommunityData({ request }: HttpContextContract) {
+    const { id } = request.params(); // here id is community id
+    const communityData = await Post.query().where('program_id', id).select('*');
+    
+    return communityData;
+  }
+
   public async getMemberships({ request, response }: HttpContextContract) {
     const { id } = request.params();
     console.log(id)
