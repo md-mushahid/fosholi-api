@@ -16,15 +16,14 @@ Route.post("create-program", "UsersController.createProgram");
 Route.get("allProgramme", "UsersController.getAllProgramme");
 Route.post("payment", "UsersController.payment");
 Route.get("payment-finalize", "UsersController.paymentFinalize");
-Route.get("get-blogs", "UsersController.getBlogs");
-Route.get("getSingleBlog/:id", "UsersController.getSingleBlog");
-Route.post("send-us-message", "UsersController.sendUsMessage");
-Route.post("create-post", "UsersController.communityPost");
-Route.post("delete-pricing", "UsersController.deletePricing");
-Route.get("get-memberships/:id", "UsersController.getMemberships");
-Route.get(
-  "/get-purchased-pricing/:userId/:productId",
-  "UsersController.checkPurchase"
-);
-Route.get("get-comment/:id", "UsersController.getComment");
-Route.post("create-comment", "UsersController.createComment");
+Route.get('get-blogs', 'UsersController.getBlogs');
+Route.get('getSingleBlog/:id', 'UsersController.getSingleBlog')
+Route.post('send-us-message', 'UsersController.sendUsMessage');
+Route.post('create-post', 'UsersController.communityPost');
+Route.post('delete-pricing', 'UsersController.deletePricing');
+Route.get('get-memberships/:id', 'UsersController.getMemberships');
+Route.get('/get-purchased-pricing/:userId/:productId', 'UsersController.checkPurchase');
+Route.get('/community/:id', 'UsersController.getCommunityData');
+
+
+
