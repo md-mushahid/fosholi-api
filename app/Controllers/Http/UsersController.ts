@@ -32,11 +32,13 @@ export default class UsersController {
 
   public async login({ request, response }) {
     const { email, password } = request.only(["email", "password"]);
-    const user = await User.findByOrFail("email", email);
+    const user: any = await User.query().select('id', 'password', 'name', 'profile_picture', 'email', 'user_type').where('email', email).first();
     if (user.password != password) {
       return response.status(400).json({ message: "Invalid credentials" });
     }
     const data = await user?.serialize();
+    if (data?.password) delete data?.password;
+    
     return data;
   }
 
@@ -105,26 +107,49 @@ export default class UsersController {
     }
   }
 
+  public async getMemberships({ request, response }: HttpContextContract) {
+    try {
+      const { id } = request.params();
+      console.log(id)
+      const memberships = await Order.query()
+        .where('user_id', id)
+        .select('product_id');
+      if (memberships.length === 0) {
+        return response.status(404).send({ message: 'No memberships found for this user' });
+      }
+      const productIds: number[] = memberships.map((order) => order.product_id); // Assuming product_id is a number
+      const products = await Program.query()
+        .whereIn('id', productIds).select('id', 'title');
+      if (products.length === 0) {
+        return response.status(404).send({ message: 'No programs found for the memberships' });
+      }
+      return response.status(200).send(products);
+    } catch (error) {
+      return response.status(500).send({ message: 'An error occurred while fetching memberships', error });
+    }
+  }
+
+
+
+  public async deletePricing({ request, response }: HttpContextContract) {
+    const { product_id } = request.all();
+
+    await Program.query().where('id', product_id).delete();
+    await Order.query().where('product_id', product_id).delete();
+
+    return response.status(200).json({ message: 'Pricing deleted successfully' });
+  }
+
   public async communityPost({ request, response }: HttpContextContract) {
     const payload = request.all();
     await Post.create(payload);
     return response.status(200).json({ message: 'Post created successfully' });
   }
   public async createPriceNproduct(payload, program) {
-    // {
-    //   title: 'a',
-    //   description: 'bbbb',
-    //   subscriptionType: 'monthly',
-    //   monthlyPrice: '100',
-    //   oneTimePrice: null,
-    //   isLifetimeAccess: false,
-    //   instructorId: 1
-    // }
     const singleProgram = await Program.findOrFail(program.id);
-
     const price = await stripe.prices.create({
       currency: 'usd',
-      unit_amount: payload.monthlyPrice*100 || payload.oneTimePrice *100,
+      unit_amount: payload.monthlyPrice * 100 || payload.oneTimePrice * 100,
       product_data: {
         name: payload.title,
       },
@@ -149,7 +174,7 @@ export default class UsersController {
         success_url: 'http://localhost:3000/dashboard',
         cancel_url: 'https://yourdomain.com/cancel',
       })
-      Order.create({user_id:payload.user_id,product_id:payload.product.id})
+      Order.create({ user_id: payload.user_id, product_id: payload.product.id })
       return ctx.response.json({ url: session.url }) // Redirect to this URL on the frontend
     } catch (error) {
       console.error('Error creating checkout session:', error)
