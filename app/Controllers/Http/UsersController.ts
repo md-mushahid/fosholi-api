@@ -218,6 +218,6 @@ export default class UsersController {
   }
   public async createComment(ctx: HttpContextContract) {
     const payload = ctx.request.all();
-    await Comment.create(payload);
+    return await Comment.create(payload);
   }
 }
