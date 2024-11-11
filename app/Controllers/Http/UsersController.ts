@@ -30,6 +30,20 @@ export default class UsersController {
     }
   }
 
+  public async checkPurchase({ params, response }: HttpContextContract) {
+    const { userId, productId } = params
+    const order = await Order.query()
+      .where('user_id', userId)
+      .andWhere('product_id', productId)
+      .first();
+
+    if (order != null && order) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public async login({ request, response }) {
     const { email, password } = request.only(["email", "password"]);
     const user: any = await User.query().select('id', 'password', 'name', 'profile_picture', 'email', 'user_type').where('email', email).first();
@@ -38,7 +52,7 @@ export default class UsersController {
     }
     const data = await user?.serialize();
     if (data?.password) delete data?.password;
-    
+
     return data;
   }
 
@@ -108,25 +122,22 @@ export default class UsersController {
   }
 
   public async getMemberships({ request, response }: HttpContextContract) {
-    try {
-      const { id } = request.params();
-      console.log(id)
-      const memberships = await Order.query()
-        .where('user_id', id)
-        .select('product_id');
-      if (memberships.length === 0) {
-        return response.status(404).send({ message: 'No memberships found for this user' });
-      }
-      const productIds: number[] = memberships.map((order) => order.product_id); // Assuming product_id is a number
-      const products = await Program.query()
-        .whereIn('id', productIds).select('id', 'title');
-      if (products.length === 0) {
-        return response.status(404).send({ message: 'No programs found for the memberships' });
-      }
-      return response.status(200).send(products);
-    } catch (error) {
-      return response.status(500).send({ message: 'An error occurred while fetching memberships', error });
+    const { id } = request.params();
+    console.log(id)
+    const memberships = await Order.query()
+      .where('user_id', id)
+      .select('product_id');
+    if (memberships.length === 0) {
+      return 0;
     }
+    const productIds: number[] = memberships.map((order) => order.product_id); // Assuming product_id is a number
+    const products = await Program.query()
+      .whereIn('id', productIds).select('id', 'title');
+    if (products.length === 0) {
+      return 0;
+    }
+    return response.status(200).send(products);
+
   }
 
 
@@ -159,9 +170,8 @@ export default class UsersController {
   }
   public async payment(ctx: HttpContextContract) {
     try {
-      const payload = ctx.request.all()  // Pass the Stripe price ID
-      console.log(payload)
-      // Create a checkout session
+      const payload = ctx.request.all()
+      // console.log(payload)
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
@@ -172,9 +182,11 @@ export default class UsersController {
         ],
         mode: 'payment', // or 'payment' for one-time payments
         success_url: 'http://localhost:3000/dashboard',
-        cancel_url: 'https://yourdomain.com/cancel',
+        cancel_url: 'http://localhost:3000/pricing',
       })
-      Order.create({ user_id: payload.user_id, product_id: payload.product.id })
+      if (session) {
+        await Order.create({ user_id: payload.user_id, product_id: payload.product.id })
+      }
       return ctx.response.json({ url: session.url }) // Redirect to this URL on the frontend
     } catch (error) {
       console.error('Error creating checkout session:', error)

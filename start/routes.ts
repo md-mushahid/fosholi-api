@@ -23,4 +23,6 @@ Route.post('send-us-message', 'UsersController.sendUsMessage');
 Route.post('create-post', 'UsersController.communityPost');
 Route.post('delete-pricing', 'UsersController.deletePricing');
 Route.get('get-memberships/:id', 'UsersController.getMemberships');
+Route.get('/get-purchased-pricing/:userId/:productId', 'UsersController.checkPurchase')
+
 
