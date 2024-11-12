@@ -11,27 +11,36 @@ const stripe = require("stripe")(
   "sk_test_51QJew1Jw0FC7QJ5cOZI5zWeKU3slsRme4nlDEAbicEIy7hCLEILNS6OY0DYFG6vheV7YmTFKIZy5SkJvsJLnKAPv00vLEY1Jd0"
 );
 export default class UsersController {
-  public async signup({ request }: HttpContextContract) {
+  public async signup({ request, response }: HttpContextContract) {
     try {
       const { name, email, password } = request.body();
-      const user_type = "teacher";
-      const verificationToken = "1234";
+      const verificationToken = "1234"; // Assuming this is a placeholder for actual token generation
+      if (!name || !email || !password) {
+        return response.status(400).json({ message: "Name, email, and password are required." });
+      }
+      const existingUser = await User.findBy('email', email);
+      if (existingUser) {
+        return response.status(400).json({ message: "Email already in use. Please use a different one." });
+      }
       const user = await User.create({
-        name: name,
-        email: email,
-        userType: user_type,
-        password: password,
-        verificationToken: verificationToken,
+        name,
+        email,
+        password,
+        userType: 'student', // Assuming 'student' is the default user type
+        verificationToken,  // This would normally be generated dynamically
       });
-      return user;
+
+      if (user) {
+        return response.status(201).json({ message: "Successfully registered!" });
+      } else {
+        return response.status(500).json({ message: "User signup failed. Please try again." });
+      }
     } catch (error) {
-      console.error("Error during user signup:", error);
-      return {
-        message: "User signup failed. Please try again.",
-        error: error.message,
-      };
+      console.log(error);
+      return response.status(500).json({ message: "User signup failed. Please try again.", error: error.message });
     }
   }
+
 
   public async checkPurchase({ params, response }: HttpContextContract) {
     const { userId, productId } = params;
@@ -45,6 +54,13 @@ export default class UsersController {
     } else {
       return false;
     }
+  }
+
+  public async getCourseName({ request }: HttpContextContract) {
+    const { communityId } = request.params();
+    const courseName = await Program.query().where('id', communityId).select('title');
+    console.log(courseName);
+    return courseName;
   }
 
   public async login({ request, response }) {
@@ -73,7 +89,7 @@ export default class UsersController {
     return response.status(200).json({ message: "Blog created successfully" });
   }
 
-  public async getBlogs({}: HttpContextContract) {
+  public async getBlogs({ }: HttpContextContract) {
     const blogs = await Blog.query().select("*");
     return blogs;
   }
@@ -92,7 +108,7 @@ export default class UsersController {
     return data;
   }
 
-  public async edit({}: HttpContextContract) {}
+  public async edit({ }: HttpContextContract) { }
 
   public async updateUser({ request, response }: HttpContextContract) {
     const payload = request.all();
@@ -106,7 +122,7 @@ export default class UsersController {
     return response.status(200).json({ message: "Message sent successfully" });
   }
 
-  public async getAllProgramme({}: HttpContextContract) {
+  public async getAllProgramme({ }: HttpContextContract) {
     const programs = await Program.all();
     return programs;
   }
@@ -132,14 +148,14 @@ export default class UsersController {
 
   public async getCommunityData({ request }: HttpContextContract) {
     const { id } = request.params(); // here id is community id
+    console.log(id);
     const communityData = await Post.query().where('program_id', id).select('*');
-    
+    console.log(communityData);
     return communityData;
   }
 
   public async getMemberships({ request, response }: HttpContextContract) {
     const { id } = request.params();
-    console.log(id);
     const memberships = await Order.query()
       .where("user_id", id)
       .select("product_id");

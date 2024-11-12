@@ -24,7 +24,7 @@ export default class User extends BaseModel {
   public password: string
 
   @column()
-  public userType: 'admin' | 'user' | 'teacher'
+  public userType: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

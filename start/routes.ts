@@ -26,5 +26,6 @@ Route.get('/get-purchased-pricing/:userId/:productId', 'UsersController.checkPur
 Route.get('/community/:id', 'UsersController.getCommunityData');
 Route.get("get-comment/:id", "UsersController.getComment");
 Route.post("create-comment", "UsersController.createComment");
+Route.get('get-course-name/:communityId', 'UsersController.getCourseName');
 
 
